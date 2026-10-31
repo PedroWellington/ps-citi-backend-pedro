@@ -59,7 +59,7 @@ export const createPlanta = async (req: Request, res: Response) => {
 
 export const listPlantas = async (req: Request, res: Response) => {
     try {
-        const { luminosidade, petFriendly } = req.query;
+        const { luminosidade, petFriendly, nome, ordem } = req.query;
 
         if (luminosidade !== undefined &&
             !Object.values(Luminosidade).includes(luminosidade as Luminosidade)) {
@@ -68,11 +68,21 @@ export const listPlantas = async (req: Request, res: Response) => {
         if (petFriendly !== undefined && petFriendly !== "true" && petFriendly !== "false") {
             return res.status(400).json({ message: "Filtro petFriendly deve ser true ou false" });
         }
+        if (ordem !== undefined && ordem !== "preco" && ordem !== "nome") {
+            return res.status(400).json({ message: "ordem deve ser preco ou nome" });
+        }
+        if (nome !== undefined && typeof nome !== "string") {
+            return res.status(400).json({ message: "nome deve ser um texto" });
+        }
 
-        const plantas = await PlantaRepository.findAllPlantas({
-            luminosidade: luminosidade as Luminosidade | undefined,
-            petFriendly: petFriendly === undefined ? undefined : petFriendly === "true",
-        });
+        const plantas = await PlantaRepository.findAllPlantas(
+            {
+                luminosidade: luminosidade as Luminosidade | undefined,
+                petFriendly: petFriendly === undefined ? undefined : petFriendly === "true",
+                nome: nome ? { contains: nome, mode: "insensitive" } : undefined,
+            },
+            ordem ? { [ordem as string]: "asc" } : undefined,
+        );
         return res.status(200).json(plantas);
     } catch (error) {
         return res.status(500).json({ message: "Erro interno do servidor" });
@@ -161,6 +171,15 @@ export const valorTotalEstoque = async (req: Request, res: Response) => {
         const valorTotalEmCentavos = plantas.reduce((soma, p) => soma + p.preco * p.estoque, 0);
         const totalDeVasos = plantas.reduce((soma, p) => soma + p.estoque, 0);
         return res.status(200).json({ valorTotalEmCentavos, totalDeVasos });
+    } catch (error) {
+        return res.status(500).json({ message: "Erro interno do servidor" });
+    }
+};
+
+export const listEsgotadas = async (req: Request, res: Response) => {
+    try {
+        const plantas = await PlantaRepository.findAllPlantas({ estoque: 0 });
+        return res.status(200).json(plantas);
     } catch (error) {
         return res.status(500).json({ message: "Erro interno do servidor" });
     }

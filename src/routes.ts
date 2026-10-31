@@ -16,12 +16,13 @@ routes.patch("/users/:id", UserController.updateUser);
 routes.delete("/users/:id", UserController.deleteUser)
 
 routes.get("/plantas/estoque/valor-total", PlantaController.valorTotalEstoque);
+routes.get("/plantas/esgotadas", PlantaController.listEsgotadas);
 
 routes.post("/plantas", PlantaController.createPlanta);
 routes.get("/plantas", PlantaController.listPlantas);
 routes.get("/plantas/:id", PlantaController.getPlanta);
 routes.patch("/plantas/:id", PlantaController.updatePlanta);
 routes.delete("/plantas/:id", PlantaController.deletePlanta);
-routes.post("/plantas/:id/venda", PlantaController.venderPlanta);;
+routes.post("/plantas/:id/venda", PlantaController.venderPlanta);
 
 export default routes;
